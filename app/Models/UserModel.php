@@ -4,39 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\LevelModel;
+
 
 class UserModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'm_user';  
-    protected $primaryKey = 'user_id'; 
-    protected $keyType = 'int';
-    public $incrementing = true;
-    public $timestamps = true;  
+    protected $table = 'm_user';  // tabel user
+
+    protected $primaryKey = 'user_id';  // primary key user
 
     protected $fillable = [
-        'username',
-        'level_id',
-        'nama',
-        'password'
+        'username', 'nama', 'password', 'level_id'
     ];
 
-    /**
-     * Relasi ke tabel level
-     */
-    public function level(): BelongsTo
-    {
-        return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
-        // 'level_id' pertama adalah foreign key di m_user,
-        // 'level_id' kedua adalah primary key di m_level (LevelModel)
-    }
+    // Relasi ke level
+   public function level()
+{
+    return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
+}
 
-    /**
-     * Hidden fields supaya password tidak tampil di array/json secara default
-     */
-    protected $hidden = [
-        'password',
-    ];
 }
