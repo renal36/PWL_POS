@@ -10,7 +10,7 @@
 
     <form method="POST" action="/user/ubah_simpan/{{ $data->id }}">
         {{ csrf_field() }}
-        {{ method_field('PUT') }} <!-- Menyatakan bahwa ini adalah request PUT -->
+        {{ method_field('PUT') }} 
 
         <label>Username</label>
         <input type="text" name="username" placeholder="Masukan Username" value="{{ $data->username }}" required>

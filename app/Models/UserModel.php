@@ -19,7 +19,7 @@ class UserModel extends Model
         'username', 'nama', 'password', 'level_id'
     ];
 
-    // Relasi ke level
+    
    public function level()
 {
     return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');

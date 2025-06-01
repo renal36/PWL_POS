@@ -172,9 +172,13 @@ class UserController extends Controller
 
 
     // ================= AJAX Section ==================
+    
 public function create_ajax()
 {
-    return view('user.form_ajax');
+    $level = LevelModel::all(); // Mengambil semua data level
+
+    // Mengirimkan variabel $level ke view
+    return view('user.form_ajax', compact('level'));
 }
     public function upload_ajax(Request $request)
     {
@@ -200,6 +204,7 @@ public function create_ajax()
     // Store new user via AJAX
    public function store_ajax(Request $request)
 {
+
     $validator = Validator::make($request->all(), [
         'level_id' => 'required|exists:m_level,level_id',
         'username' => 'required|string|min:3|max:20|unique:m_user,username',
@@ -225,6 +230,7 @@ public function create_ajax()
     return response()->json([
     'status' => true,
     'message' => 'Data berhasil disimpan'
+
 ]);
 
 }

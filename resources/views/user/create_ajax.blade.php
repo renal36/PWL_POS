@@ -1,7 +1,7 @@
 <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-     <form id="formCreateUserAjax" method="POST" action="{{ url('user/ajax/user/ajax') }}">
+     <form id="formCreateUserAjax" method="POST" action="{{ url('user/ajax/user') }}"> {{-- PERBAIKAN 1: URL action form agar benar --}}
         @csrf
 
         <div class="modal-header">
@@ -53,6 +53,14 @@
 
 <script>
 $(document).ready(function() {
+  // Pastikan meta tag csrf-token ada di <head> halaman utama Anda
+  // <meta name="csrf-token" content="{{ csrf_token() }}">
+  $.ajaxSetup({
+      headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+  });
+
   $("#formCreateUserAjax").validate({
     rules: {
       level_id: { required: true },
@@ -88,50 +96,79 @@ $(document).ready(function() {
         console.log(pair[0]+ ': ' + pair[1]);
       }
 
-$.ajax({
-  url: '/user/ajax/user',  // URL POST yang benar sesuai route
-  type: 'POST',
-  data: $('#form-id').serialize(),
-  dataType: 'json',
-  success: function(response) {
-    if (response.status) {
-      $('#myModal').modal('hide');
-      $('#form-id')[0].reset();  // pastikan form di-reset
-      $('.form-text.text-danger').text('');
-      $('.is-invalid').removeClass('is-invalid');
+      $.ajax({
+        url: '/user/ajax/user',  // URL POST yang benar sesuai route (sudah benar)
+        type: 'POST',
+        data: formData, // PERBAIKAN 2: Gunakan formData yang sudah dibuat
+        processData: false, // Penting saat menggunakan FormData
+        contentType: false, // Penting saat menggunakan FormData
+        // dataType: 'json', // Ini untuk respons yang diharapkan dari server
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: response.message,
-        timer: 2000,
-        showConfirmButton: false
-      });
+        success: function(response) {
+          if (response.status) {
+            $('#myModal').modal('hide');
+            $('#formCreateUserAjax')[0].reset();  // PERBAIKAN 3: ID form yang benar
+            $('.form-text.text-danger').text('');
+            $('.is-invalid').removeClass('is-invalid');
 
-      if (typeof tableUser !== 'undefined') {
-        tableUser.ajax.reload(null, false);
-      }
-    } else {
-      // Tampilkan error validasi dari backend
-      $('.form-text.text-danger').text('');
-      $('.is-invalid').removeClass('is-invalid');
-      $.each(response.msgField, function(field, errors) {
-        $('#error-' + field).text(errors[0]);
-        $('#' + field).addClass('is-invalid');
-      });
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: response.message,
+              timer: 2000,
+              showConfirmButton: false
+            });
 
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: response.message
+            // Periksa apakah tableUser sudah didefinisikan dan memiliki fungsi ajax.reload
+            if (typeof tableUser !== 'undefined' && typeof tableUser.ajax !== 'undefined' && typeof tableUser.ajax.reload === 'function') {
+              tableUser.ajax.reload(null, false);
+            }
+          } else {
+            // Tampilkan error validasi dari backend
+            $('.form-text.text-danger').text('');
+            $('.is-invalid').removeClass('is-invalid');
+            $.each(response.msgField, function(field, errors) {
+              $('#error-' + field).text(errors[0]);
+              $('#' + field).addClass('is-invalid');
+            });
+
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: response.message
+            });
+          }
+        },
+        error: function(xhr, status, error) {
+          console.error("AJAX Error:", xhr.responseText, status, error); // Log respons lengkap
+          let errorMessage = "Terjadi kesalahan AJAX.";
+          if (xhr.status === 405) {
+              errorMessage = "Kesalahan: Metode tidak diizinkan untuk rute ini. Pastikan URL dan metode di Laravel sudah benar.";
+          } else if (xhr.status === 422) { // Unprocessable Entity (biasanya untuk validasi)
+              try {
+                  let responseData = JSON.parse(xhr.responseText);
+                  if (responseData.message) {
+                      errorMessage = responseData.message;
+                  } else if (responseData.msgField) {
+                      errorMessage = "Validasi Gagal:\n";
+                      $.each(responseData.msgField, function(field, errors) {
+                          errorMessage += field + ": " + errors.join(", ") + "\n";
+                      });
+                  }
+              } catch (e) {
+                  errorMessage = "Validasi gagal dengan respons yang tidak dapat dipahami.";
+              }
+          } else {
+              errorMessage += ` Status: ${xhr.status} (${xhr.statusText})`;
+          }
+          Swal.fire({
+            icon: 'error',
+            title: 'AJAX Error',
+            text: errorMessage
+          });
+        }
       });
     }
-  },
-  error: function(xhr, status, error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'AJAX Error',
-      text: error
-    });
-  }
+  });
 });
+</script>
