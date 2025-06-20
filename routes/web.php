@@ -1,63 +1,68 @@
 <?php
 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\BarangController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LevelController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
 
-// Route untuk halaman utama
-Route::get('/', [WelcomeController::class, 'index']);
+Route::pattern('id', '[0-9]+');
 
-// Group route untuk AJAX
-Route::prefix('user/ajax')->group(function () {
-    // Menampilkan form untuk membuat user baru (via AJAX/modal)
-    Route::get('/create', [UserController::class, 'create_ajax'])->name('user.ajax.create');
 
-    // Menyimpan data user baru (via AJAX)
-    Route::post('/store', [UserController::class, 'store_ajax'])->name('user.ajax.store');
+Route::get('login', [AuthController::class, 'login'])->name('login');
+Route::post('login', [AuthController::class, 'postLogin']);
+Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
 
-    // Mengupload file (misalnya untuk foto profil, via AJAX)
-    Route::post('/upload', [UserController::class, 'upload_ajax'])->name('user.ajax.upload');
 
-    // Menampilkan form edit user berdasarkan ID (via AJAX/modal)
-    Route::get('/{id}/edit', [UserController::class, 'edit_ajax'])->name('user.ajax.edit');
+Route::middleware(['auth'])->group(function () {
 
-    // Memperbarui data user berdasarkan ID (via AJAX)
-    // Gunakan PUT/PATCH untuk update, sesuai RESTful convention
-    Route::put('/{id}', [UserController::class, 'update_ajax'])->name('user.ajax.update');
+    Route::get('/', [WelcomeController::class, 'index'])->name('home');
 
-    // Menampilkan konfirmasi hapus user berdasarkan ID (via AJAX/modal)
-    Route::get('/{id}/confirm-delete', [UserController::class, 'confirm_ajax'])->name('user.ajax.confirm-delete');
-    // Mengubah rute confirm delete menjadi lebih deskriptif, misal: /user/ajax/{id}/confirm-delete
+    Route::middleware(['authorize:ADM'])->group(function () {
+        Route::get('/level', [LevelController::class, 'index'])->name('level.index');
+        Route::post('/level/list', [LevelController::class, 'list'])->name('level.list');    // JSON datatable
+        Route::get('/level/create', [LevelController::class, 'create'])->name('level.create');
+        Route::post('/level', [LevelController::class, 'store'])->name('level.store');
+        Route::get('/level/{id}/edit', [LevelController::class, 'edit'])->name('level.edit');
+        Route::put('/level/{id}', [LevelController::class, 'update'])->name('level.update');
+        Route::delete('/level/{id}', [LevelController::class, 'destroy'])->name('level.destroy');
+    });
 
-    // Menghapus data user berdasarkan ID (via AJAX)
-    // Gunakan DELETE sesuai RESTful convention
-    Route::delete('/{id}', [UserController::class, 'delete_ajax'])->name('user.ajax.delete');
-});
+    // Menambahkan group route untuk BarangController dengan middleware authorize:ADM,MNG
+    // Artinya semua route di dalam group ini harus punya role ADM (Administrator) dan MNG (Manager)
+    Route::middleware(['authorize:ADM,MNG'])->group(function() {
+        Route::get('/barang', [BarangController::class, 'index']);
+        Route::post('/barang/list', [BarangController::class, 'list']);
+        Route::post('/barang/create_ajax', [BarangController::class, 'create_ajax']); // ajax form create
+        Route::get('/barang/edit', [BarangController::class, 'edit']); // ajax form edit
+        Route::put('/barang/{id}/update_ajax', [BarangController::class, 'update_ajax']); // ajax update
+        Route::delete('/barang/{id}/delete_ajax', [BarangController::class, 'delete_ajax']); // ajax form confirm
+        Route::delete('/barang/{id}', [BarangController::class, 'destroy']); // ajax delete
+    });
 
-// Group route untuk CRUD user biasa
-Route::prefix('user')->group(function () {
-    // Menampilkan daftar user
-    Route::get('/', [UserController::class, 'index'])->name('user.index'); // Tambahkan nama rute
+    Route::prefix('user/ajax')->name('user.ajax.')->group(function () {
+        Route::get('/create', [UserController::class, 'create_ajax'])->name('create');
+        Route::post('/store', [UserController::class, 'store_ajax'])->name('store');
+        Route::post('/upload', [UserController::class, 'upload_ajax'])->name('upload');
+        Route::get('/{id}/edit', [UserController::class, 'edit_ajax'])->name('edit');
+        Route::put('/{id}', [UserController::class, 'update_ajax'])->name('update');
+        Route::get('/{id}/confirm-delete',[UserController::class, 'confirm_ajax'])->name('confirm-delete');
+        Route::delete('/{id}', [UserController::class, 'delete_ajax'])->name('delete');
+    });
 
-    // Endpoint untuk DataTables (mengambil data list user)
-    Route::get('/list', [UserController::class, 'list'])->name('user.list');
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/list', [UserController::class, 'list'])->name('list');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{id}', [UserController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
+    });
 
-    // Menampilkan form untuk membuat user baru (non-AJAX)
-    Route::get('/create', [UserController::class, 'create'])->name('user.create');
-
-    // Menyimpan data user baru (non-AJAX)
-    Route::post('/', [UserController::class, 'store'])->name('user.store');
-
-    // Menampilkan detail user berdasarkan ID
-    Route::get('/{id}', [UserController::class, 'show'])->name('user.show');
-
-    // Menampilkan form edit user berdasarkan ID
-    Route::get('/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
-
-    // Memperbarui data user berdasarkan ID
-    Route::put('/{id}', [UserController::class, 'update'])->name('user.update');
-
-    // Menghapus data user berdasarkan ID
-    Route::delete('/{id}', [UserController::class, 'destroy'])->name('user.destroy');
 });
