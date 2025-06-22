@@ -1,12 +1,12 @@
 <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-     <form id="formCreateUserAjax" method="POST" action="{{ url('user/ajax/user') }}"> {{-- PERBAIKAN 1: URL action form agar benar --}}
+     <form id="formCreateUserAjax" method="POST" action="{{ route('user.ajax.store') }}">
         @csrf
 
         <div class="modal-header">
           <h5 class="modal-title" id="modalLabel">Tambah User (AJAX)</h5>
-          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"> {{-- Ganti data-bs-dismiss jadi data-dismiss untuk Bootstrap 4 --}}
             <span>&times;</span>
           </button>
         </div>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
       </form>
@@ -51,10 +51,19 @@
   </div>
 </div>
 
+<!-- PERBAIKAN untuk error aria-hidden (ditempatkan di bawah modal, bisa juga di layout utama) -->
+<script>
+  $('#myModal')
+    .on('show.bs.modal', function () {
+      $(this).removeAttr('aria-hidden');
+    })
+    .on('hidden.bs.modal', function () {
+      $(this).attr('aria-hidden', 'true');
+    });
+</script>
+
 <script>
 $(document).ready(function() {
-  // Pastikan meta tag csrf-token ada di <head> halaman utama Anda
-  // <meta name="csrf-token" content="{{ csrf_token() }}">
   $.ajaxSetup({
       headers: {
           'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -90,24 +99,18 @@ $(document).ready(function() {
       $(element).removeClass('is-invalid');
     },
     submitHandler: function(form) {
-      // Debug: cek isi FormData
       var formData = new FormData(form);
-      for (var pair of formData.entries()) {
-        console.log(pair[0]+ ': ' + pair[1]);
-      }
 
       $.ajax({
-        url: '/user/ajax/user',  // URL POST yang benar sesuai route (sudah benar)
+        url: '/user/ajax/user',
         type: 'POST',
-        data: formData, // PERBAIKAN 2: Gunakan formData yang sudah dibuat
-        processData: false, // Penting saat menggunakan FormData
-        contentType: false, // Penting saat menggunakan FormData
-        // dataType: 'json', // Ini untuk respons yang diharapkan dari server
-
+        data: formData,
+        processData: false,
+        contentType: false,
         success: function(response) {
           if (response.status) {
             $('#myModal').modal('hide');
-            $('#formCreateUserAjax')[0].reset();  // PERBAIKAN 3: ID form yang benar
+            $('#formCreateUserAjax')[0].reset();
             $('.form-text.text-danger').text('');
             $('.is-invalid').removeClass('is-invalid');
 
@@ -119,12 +122,10 @@ $(document).ready(function() {
               showConfirmButton: false
             });
 
-            // Periksa apakah tableUser sudah didefinisikan dan memiliki fungsi ajax.reload
-            if (typeof tableUser !== 'undefined' && typeof tableUser.ajax !== 'undefined' && typeof tableUser.ajax.reload === 'function') {
+            if (typeof tableUser !== 'undefined' && typeof tableUser.ajax !== 'undefined') {
               tableUser.ajax.reload(null, false);
             }
           } else {
-            // Tampilkan error validasi dari backend
             $('.form-text.text-danger').text('');
             $('.is-invalid').removeClass('is-invalid');
             $.each(response.msgField, function(field, errors) {
@@ -140,23 +141,16 @@ $(document).ready(function() {
           }
         },
         error: function(xhr, status, error) {
-          console.error("AJAX Error:", xhr.responseText, status, error); // Log respons lengkap
+          console.error("AJAX Error:", xhr.responseText, status, error);
           let errorMessage = "Terjadi kesalahan AJAX.";
           if (xhr.status === 405) {
-              errorMessage = "Kesalahan: Metode tidak diizinkan untuk rute ini. Pastikan URL dan metode di Laravel sudah benar.";
-          } else if (xhr.status === 422) { // Unprocessable Entity (biasanya untuk validasi)
+              errorMessage = "Kesalahan: Metode tidak diizinkan. Periksa method dan URL route.";
+          } else if (xhr.status === 422) {
               try {
                   let responseData = JSON.parse(xhr.responseText);
-                  if (responseData.message) {
-                      errorMessage = responseData.message;
-                  } else if (responseData.msgField) {
-                      errorMessage = "Validasi Gagal:\n";
-                      $.each(responseData.msgField, function(field, errors) {
-                          errorMessage += field + ": " + errors.join(", ") + "\n";
-                      });
-                  }
+                  errorMessage = responseData.message || "Validasi gagal.";
               } catch (e) {
-                  errorMessage = "Validasi gagal dengan respons yang tidak dapat dipahami.";
+                  errorMessage = "Validasi gagal (format respons tidak sesuai).";
               }
           } else {
               errorMessage += ` Status: ${xhr.status} (${xhr.statusText})`;

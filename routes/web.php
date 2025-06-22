@@ -9,14 +9,11 @@ use App\Http\Controllers\LevelController;
 use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::pattern('id', '[0-9]+');
-
 
 Route::get('login', [AuthController::class, 'login'])->name('login');
 Route::post('login', [AuthController::class, 'postLogin']);
 Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
-
 
 Route::middleware(['auth'])->group(function () {
 
@@ -24,7 +21,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['authorize:ADM'])->group(function () {
         Route::get('/level', [LevelController::class, 'index'])->name('level.index');
-        Route::post('/level/list', [LevelController::class, 'list'])->name('level.list');    // JSON datatable
+        Route::post('/level/list', [LevelController::class, 'list'])->name('level.list'); 
         Route::get('/level/create', [LevelController::class, 'create'])->name('level.create');
         Route::post('/level', [LevelController::class, 'store'])->name('level.store');
         Route::get('/level/{id}/edit', [LevelController::class, 'edit'])->name('level.edit');
@@ -32,16 +29,20 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/level/{id}', [LevelController::class, 'destroy'])->name('level.destroy');
     });
 
-    // Menambahkan group route untuk BarangController dengan middleware authorize:ADM,MNG
-    // Artinya semua route di dalam group ini harus punya role ADM (Administrator) dan MNG (Manager)
     Route::middleware(['authorize:ADM,MNG'])->group(function() {
         Route::get('/barang', [BarangController::class, 'index']);
         Route::post('/barang/list', [BarangController::class, 'list']);
-        Route::post('/barang/create_ajax', [BarangController::class, 'create_ajax']); // ajax form create
-        Route::get('/barang/edit', [BarangController::class, 'edit']); // ajax form edit
+        Route::get('/barang/create_ajax', [BarangController::class, 'create_ajax']); // ajax form create
+        Route::post('/barang_ajax', [BarangController::class, 'store_ajax']); // ajax store
+        Route::get('/barang/{id}/edit_ajax', [BarangController::class, 'edit_ajax']); // ajax form edit
         Route::put('/barang/{id}/update_ajax', [BarangController::class, 'update_ajax']); // ajax update
-        Route::delete('/barang/{id}/delete_ajax', [BarangController::class, 'delete_ajax']); // ajax form confirm
-        Route::delete('/barang/{id}', [BarangController::class, 'destroy']); // ajax delete
+        Route::get('/barang/{id}/delete_ajax', [BarangController::class, 'confirm_ajax']); // ajax form confirm
+        Route::delete('/barang/{id}/delete_ajax', [BarangController::class, 'delete_ajax']); // ajax delete
+        Route::get('/barang/import', [BarangController::class, 'import']); // ajax form upload excel
+        Route::post('/barang/import_ajax', [BarangController::class, 'import_ajax']); // ajax import excel
+
+        Route::get('/barang/export_excel', [BarangController::class, 'export_excel']);
+        Route::get('/barang/export-pdf', [BarangController::class, 'export_pdf']); // ✅ Tambahkan route export PDF
     });
 
     Route::prefix('user/ajax')->name('user.ajax.')->group(function () {

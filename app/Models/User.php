@@ -14,7 +14,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // pastikan kolom 'role' juga bisa diisi
+        'role', 
     ];
 
     protected $hidden = [
@@ -30,9 +30,13 @@ class User extends Authenticatable
         ];
     }
 
-    // Tambahkan fungsi ini:
-    public function hasRole($role): bool
+  
+    public function hasRole(string|array $role): bool
     {
+        if (is_array($role)) {
+            return in_array($this->role, $role);
+        }
+
         return $this->role === $role;
     }
 }

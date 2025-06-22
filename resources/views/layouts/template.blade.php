@@ -12,89 +12,63 @@
   <meta name="csrf-token" content="{{ csrf_token() }}" />
 
   <!-- Google Font: Source Sans Pro -->
-  <link
-    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback" rel="stylesheet" />
 
-  <!-- Font Awesome  -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 
   <!-- DataTables CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap4.min.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap4.min.css"
-  />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap4.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap4.min.css" />
 
-  <!-- SweetAlert2 Bootstrap4 theme -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.min.css"
-  />
+  <!-- SweetAlert2 Theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.min.css" />
 
-  <!-- AdminLTE Theme style -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"
-  />
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
 
   @stack('css')
 </head>
 <body class="hold-transition sidebar-mini">
   <div class="wrapper">
+
+    {{-- Header --}}
     @include('layouts.header')
 
+    {{-- Sidebar --}}
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <a href="{{ url('/') }}" class="brand-link">
-        <img
-          src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png"
-          alt="AdminLTE Logo"
-          class="brand-image img-circle elevation-3"
-          style="opacity: .8"
-        />
+        {{-- Logo bawaan AdminLTE --}}
         <span class="brand-text font-weight-light">PWL - Starter Code</span>
       </a>
-
       @include('layouts.sidebar')
     </aside>
 
+    {{-- Content --}}
     <div class="content-wrapper">
       @include('layouts.breadcrumb')
-
       <section class="content pt-3">
         @yield('content')
       </section>
     </div>
 
+    {{-- Footer --}}
     @include('layouts.footer')
+
   </div>
 
-  <!-- jQuery -->
- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/additional-methods.min.js"></script> {{-- Ini opsional, hanya jika Anda butuh aturan validasi tambahan --}}
+  <!-- jQuery Validation -->
+  <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/additional-methods.min.js"></script>
 
-@stack('js')
-
-</body>
-</html>
-
-  <!-- Bootstrap Bundle JS -->
+  <!-- Bootstrap Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- DataTables & Plugins -->
@@ -111,21 +85,19 @@
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.colVis.min.js"></script>
 
-  <!-- jquery-validation -->
-  <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/additional-methods.min.js"></script>
-
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <!-- AdminLTE App -->
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
+  <!-- CSRF Token Setup -->
   <script>
-    // Setup AJAX dengan CSRF token untuk keamanan Laravel
     $.ajaxSetup({
-  headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-});
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+    });
   </script>
 
   @stack('js')

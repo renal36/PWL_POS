@@ -9,11 +9,11 @@ class LevelModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'm_level';  // pastikan nama tabel sesuai
+    protected $table = 'm_level';  
 
-    protected $primaryKey = 'level_id';  // pastikan sesuai struktur tabel
+    protected $primaryKey = 'level_id';  
 
-    public $timestamps = false;  // biasanya level tidak perlu timestamps
+    public $timestamps = false;  
 
     protected $fillable = [
         'level_nama'

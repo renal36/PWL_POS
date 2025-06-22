@@ -11,6 +11,17 @@
                onclick="event.preventDefault(); modalAction(this.href, 'Tambah User (AJAX)');">
                Tambah User (AJAX)
             </a>
+        
+            <a href="{{ url('barang/import') }}" 
+               class="btn btn-info btn-sm"
+               onclick="event.preventDefault(); modalAction(this.href, 'Import Data Barang');">
+               <i class="fa fa-file-excel"></i> Import Barang (AJAX)
+            </a>
+            {{-- BARIS YANG DITAMBAHKAN SESUAI PERMINTAAN --}}
+            <a href="{{ url('/barang/export_excel') }}" class="btn btn-warning btn-sm">
+                <i class="fa fa-download"></i> Export Barang
+            </a>
+            {{-- AKHIR BARIS YANG DITAMBAHKAN --}}
         </div>
     </div>
     <div class="card-body">
@@ -30,10 +41,11 @@
 
 
 <div class="modal fade" id="modalAction" tabindex="-1" role="dialog" aria-labelledby="modalActionLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content" id="modalContent">
-      </div>
-  </div>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" id="modalContent">
+            
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -50,29 +62,26 @@ $(function () {
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'username', name: 'username' },
             { data: 'nama', name: 'nama' },
-            { data: 'level_nama', name: 'level.level_nama' }, // name harus sesuai dengan kolom di database untuk sorting/search
+            { data: 'level_nama', name: 'level.level_nama' }, 
             { data: 'aksi', name: 'aksi', orderable: false, searchable: false },
         ]
     });
 });
 
-// Fungsi modalAction harus di luar $(document).ready() agar bisa diakses
-function modalAction(url, title = null) { // Tambahkan parameter title
-    // Tampilkan indikator loading saat memuat
+
+function modalAction(url, title = null) { 
+    
     $('#modalContent').html('<div class="text-center p-4">Loading...</div>');
-    // Tampilkan modal
+    
     $('#modalAction').modal('show');
 
     $.ajax({
         url: url,
-        type: 'GET', // Pastikan ini GET untuk memuat form
-        dataType: 'html', // Karena responsnya adalah HTML dari form_ajax.blade.php
+        type: 'GET', 
+        dataType: 'html', 
         success: function (data) {
-            $('#modalContent').html(data); // Masukkan konten modal ke dalam div modalContent
-            // Anda bisa tambahkan ini jika ada elemen untuk judul di dalam data yang dimuat
-            // if (title) {
-            //     $('#modalActionLabel').text(title); // Mengatur judul modal jika ada label
-            // }
+            $('#modalContent').html(data); 
+            
         },
         error: function (xhr, status, error) {
             console.error("AJAX Error loading modal:", xhr.responseText, status, error);
@@ -89,9 +98,12 @@ $(document).on('submit', '#formEditUser', function(e){
 
     $.ajax({
         url: url,
-        method: 'POST', // Atau PUT/PATCH jika route Anda diset PUT/PATCH
+        method: 'POST', 
         data: form.serialize(),
         success: function(res) {
+            // Bersihkan pesan error sebelumnya dari semua field
+            form.find('.error-text').text('');
+
             if(res.status){
                 $('#modalAction').modal('hide'); // Tutup modal dengan ID yang benar
                 tableUser.ajax.reload(null, false); // Reload DataTables menggunakan instance tableUser
@@ -104,9 +116,10 @@ $(document).on('submit', '#formEditUser', function(e){
                 });
             } else {
                 let errors = res.msgField;
-                form.find('.text-danger').remove();
+                // form.find('.text-danger').remove(); // Hapus baris ini jika Anda menggunakan `<small id="error-field">`
                 $.each(errors, function(field, msg){
-                    form.find('[name="'+field+'"]').after('<small class="text-danger">'+msg[0]+'</small>');
+                    // form.find('[name="'+field+'"]').after('<small class="text-danger">'+msg[0]+'</small>'); // Ganti dengan baris di bawah
+                    $('#error-' + field).text(msg[0]); // Menampilkan error pada elemen small yang spesifik
                 });
                 Swal.fire({
                     icon: 'error',
@@ -125,6 +138,58 @@ $(document).on('submit', '#formEditUser', function(e){
         }
     });
 });
+
+$(document).on('submit', '#formImportBarang', function(e){
+    e.preventDefault();
+    const form = $(this);
+    const formData = new FormData(form[0]); 
+
+    $.ajax({
+        url: form.attr('action'),
+        type: form.attr('method'),
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+            $('.error-text').text('');
+
+            if (res.status) {
+                $('#modalAction').modal('hide');    
+                // Perhatian: tableBarang tidak didefinisikan di scope ini (halaman user).
+                // Jika import ini berhasil dan Anda ingin merefresh tabel barang di halaman barang,
+                // maka Anda perlu me-reload halaman barang atau mengirim event.
+                // Untuk saat ini, saya biarkan kosong/komentar karena tidak ada tableBarang di halaman ini.
+                // tableBarang.ajax.reload(null, false); 
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text:   res.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                $.each(res.msgField, (field, msg) => {
+                    $('#error-' + field).text(msg[0]);
+                });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi Kesalahan',
+                    text:   res.message
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('AJAX Error:', status, error, xhr.responseText);
+            Swal.fire({
+                icon: 'error',
+                title: 'AJAX Error',
+                text: 'Terjadi kesalahan saat mengunggah file.'
+            });
+        }
+    });
+});
+
 
 // Submit delete via AJAX
 $(document).on('submit', '#formDeleteUser', function(e){
@@ -145,12 +210,12 @@ $(document).on('submit', '#formDeleteUser', function(e){
 
             $.ajax({
                 url: url,
-                method: 'DELETE', // Pastikan ini DELETE sesuai route
+                method: 'DELETE', 
                 data: form.serialize(),
                 success: function(res){
                     if(res.status){
-                        $('#modalAction').modal('hide'); // Tutup modal dengan ID yang benar
-                        tableUser.ajax.reload(null, false); // Reload DataTables menggunakan instance tableUser
+                        $('#modalAction').modal('hide'); 
+                        tableUser.ajax.reload(null, false); 
                         Swal.fire({
                             icon: 'success',
                             title: 'Dihapus!',
